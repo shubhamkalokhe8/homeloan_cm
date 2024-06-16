@@ -3,7 +3,9 @@ package com.cjc.loanapplication.controller;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,9 @@ import com.cjc.loanapplication.model.EmailSender;
 import com.cjc.loanapplication.repository.EmailSenderWithAttachmentRepository;
 import com.cjc.loanapplication.servicei.emailserviccei;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 @CrossOrigin("*")
 @RestController
 @RequestMapping("/mail")
@@ -27,14 +32,16 @@ public class SanctionEmailWithAttachment {
 	emailserviccei emailservice;
 	@Autowired
 	EmailSenderWithAttachmentRepository esi;
-	@PostMapping(value = "/mail/{custoId}",consumes ={MediaType.MULTIPART_FORM_DATA_VALUE} )
-	public String sendAttachment(@RequestPart("attachment") MultipartFile file, @PathVariable Integer custoId) {
-		ObjectMapper om=new ObjectMapper();
+	@PostMapping(value = "/mail/{custoId}")
+	public ResponseEntity<String> sendAttachment(@PathVariable Integer custoId) {
 		EmailSender es1=new EmailSender();
 		Optional<Customer> optionCustoId = esi.findById(custoId);
 		Customer customer = optionCustoId.get();
+		if(customer!=null) {
+			
 		
-		
+		byte[] sanctionLetter = customer.getSanctionLetter().getSanctionLetter();
+
 		try {
 			
 			String text="We are pleased to inform you that your loan application has been approved. "
@@ -43,19 +50,23 @@ public class SanctionEmailWithAttachment {
 					+ "\r\n"
 					+ "Thank you for choosing [Star Finance Limited] for your financial needs.";
 			es1.setToEmail(customer.getCustomerEmailId());
-		    es1.setAttachment(file.getBytes());
+		    es1.setAttachment(sanctionLetter);
 			es1.setSubject("Sanction Pdf");
 			es1.setTextMessage(text);
-		    String originalFilename = file.getOriginalFilename();
-		    emailservice.sendEmailAttachment(es1,originalFilename);
-		    return "mail send with attachment";
+		    emailservice.sendEmailAttachment(es1,"sanctionletter.pdf");
+		    log.info("Email Send With Attachment");
+		    return new ResponseEntity<String>("mail send with attachment",HttpStatus.OK);
 		} catch (Exception e) {
 			
 			e.printStackTrace();
 			
 		}
-		return "Email Send With Attachment Successfully"; 
-			
+		}
+		else {
+			throw new ResourseNotFoundException("Customer Not Found For Send Email");
+		}
+		
+		return null;
 		
 		
 	}
