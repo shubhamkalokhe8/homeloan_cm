@@ -27,6 +27,7 @@ try {
     helper.setSubject(es1.getSubject());
     helper.setText(es1.getTextMessage());
     helper.addAttachment(originalFilename, new ByteArrayResource(es1.getAttachment()));
+    System.out.println("In Service Impl Email");
     jms.send(mm);
 } catch (MessagingException e) {
 	// TODO Auto-generated catch block

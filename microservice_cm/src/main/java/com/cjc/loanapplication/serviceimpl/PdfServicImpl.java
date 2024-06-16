@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.cjc.loanapplication.exceptions.ResourseNotFoundException;
 import com.cjc.loanapplication.model.Customer;
 import com.cjc.loanapplication.model.SanctionLetter;
 import com.cjc.loanapplication.repository.PdfRepository;
@@ -23,12 +24,13 @@ public class PdfServicImpl implements PdfServiceI{
 @Autowired
 PdfRepository pdfrepo;
 	@Override
-	public ByteArrayInputStream createPdf(Integer customerId) {
+	public Customer createPdf(Integer customerId) {
 		Date d=new Date();
 		Optional<Customer> findById = pdfrepo.findById(customerId);
 		Customer cus=findById.get();
 		if(cus!=null)
 		{
+			
 			SanctionLetter sanctionLetter = cus.getSanctionLetter();
 			
 String title="Loan Sanction";
@@ -76,8 +78,11 @@ String content="[Star Finance Limited]\r\n"
 		document.add(paragraph);
 		
 		document.close();
-		return new ByteArrayInputStream(out.toByteArray());
+	ByteArrayInputStream byt= new ByteArrayInputStream(out.toByteArray());
+		byte[] readAllBytes = byt.readAllBytes();
+       cus.getSanctionLetter().setSanctionLetter(readAllBytes);
+     return pdfrepo.save(cus);
 	}
-		return null;
+		throw new ResourseNotFoundException("Customer Not Found For Generate Pdf");
 	}
 }
