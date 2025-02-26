@@ -31,6 +31,7 @@ PdfServiceI pdfservicei;
 	
 @PutMapping(value="/generatepdf/{customerId}" ,produces = MediaType.APPLICATION_PDF_VALUE)
 public ResponseEntity<Customer> createPdf(@PathVariable Integer customerId) {
+System.out.println("pdf generated successfully on demand");
 	System.out.println(customerId);
 	Customer pdf=pdfservicei.createPdf(customerId);
 log.info("Pdf Generate Of Sanction Letter");
